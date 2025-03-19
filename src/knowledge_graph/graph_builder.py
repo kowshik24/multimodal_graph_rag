@@ -77,24 +77,34 @@ class KnowledgeGraphBuilder:
             
     def _generate_embeddings(self, graph):
         """Generate embeddings for different node types."""
+        embedding_dim = self.config.get("embedding", {}).get("text_dimension", 768)
+        
         for node, data in graph.nodes(data=True):
             content = data.get("content", "")
             
             if not content:
                 continue
                 
-            if data["type"] in ["chunk", "entity", "text"]:
-                embedding = self.text_embedder.encode(content)
-            elif data["type"] == "table":
-                embedding = self._generate_table_embedding(content)
-            elif data["type"] == "figure":
-                embedding = self._generate_image_embedding(content)
-            else:
-                # Default to text embedding for unknown types
-                embedding = self.text_embedder.encode(str(content))
+            try:
+                if data["type"] in ["chunk", "entity", "text"]:
+                    embedding = self.text_embedder.encode(content)
+                elif data["type"] == "table":
+                    embedding = self._generate_table_embedding(content)
+                elif data["type"] == "figure":
+                    embedding = self._generate_image_embedding(content)
+                else:
+                    embedding = self.text_embedder.encode(str(content))
                 
-            graph.nodes[node]["embedding"] = embedding
-            
+                # Ensure consistent dimensions
+                if len(embedding) != embedding_dim:
+                    logging.warning(f"Embedding dimension mismatch for node {node}. Skipping.")
+                    continue
+                    
+                graph.nodes[node]["embedding"] = embedding
+            except Exception as e:
+                logging.error(f"Error generating embedding for node {node}: {str(e)}")
+                continue
+                
     def _generate_table_embedding(self, table_content):
         """Generate embedding for table content."""
         # Convert table content to string representation
