@@ -6,7 +6,9 @@ class ContextAwareRetriever:
     def __init__(self, knowledge_graph, config):
         self.knowledge_graph = knowledge_graph
         self.config = config
-        self.embedder = SentenceTransformer(config.embedding_model)
+        # Handle config as dictionary
+        embedding_model = config.get('embedding_model', 'sentence-transformers/all-MiniLM-L6-v2')
+        self.embedder = SentenceTransformer(embedding_model)
         
     def retrieve(self, query, top_k=5):
         """Retrieve relevant context using hybrid search."""
