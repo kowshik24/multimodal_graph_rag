@@ -18,7 +18,7 @@ setup(
         "matplotlib>=3.4.3",
         "pyyaml>=5.4.1",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     author="kowshik24",
     author_email="kowshik24@example.com",
     description="A multimodal graph-based RAG system for complex document understanding",
