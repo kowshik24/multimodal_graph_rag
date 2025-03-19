@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 import torch
 import spacy
 from typing import List, Dict, Tuple
+import re
 
 class EntityExtractor:
     def __init__(self, config):
@@ -85,3 +86,43 @@ class EntityExtractor:
                 })
                 
         return entities
+    
+    def _merge_entities(self, named_entities: List[Dict], technical_entities: List[Dict]) -> List[Dict]:
+        """Merge named entities and technical entities, handling overlaps."""
+        merged = named_entities + technical_entities
+        # Sort by start position to handle overlaps
+        merged.sort(key=lambda x: x["start"])
+        
+        # Remove overlapping entities, keeping the longer one
+        result = []
+        if not merged:
+            return result
+            
+        current = merged[0]
+        for next_entity in merged[1:]:
+            current_end = current["start"] + len(current["text"])
+            # If there's no overlap, add current to result and move to next
+            if next_entity["start"] >= current_end:
+                result.append(current)
+                current = next_entity
+            else:
+                # If there's overlap, keep the longer entity
+                if len(next_entity["text"]) > len(current["text"]):
+                    current = next_entity
+        
+        result.append(current)
+        return result
+    
+    def _deduplicate_entities(self, entities: List[Dict]) -> List[Dict]:
+        """Remove duplicate entities across chunks."""
+        seen = set()
+        unique_entities = []
+        
+        for entity in entities:
+            # Create a tuple of identifying features
+            entity_key = (entity["text"].lower(), entity["type"])
+            if entity_key not in seen:
+                seen.add(entity_key)
+                unique_entities.append(entity)
+                
+        return unique_entities
