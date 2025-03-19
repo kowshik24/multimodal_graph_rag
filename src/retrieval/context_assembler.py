@@ -1,6 +1,7 @@
 from typing import List, Dict
 import networkx as nx
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 class ContextAssembler:
     def __init__(self, config):

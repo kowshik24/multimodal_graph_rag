@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.distance import cosine
+from sentence_transformers import SentenceTransformer
 
 class ContextAwareRetriever:
     def __init__(self, knowledge_graph, config):
