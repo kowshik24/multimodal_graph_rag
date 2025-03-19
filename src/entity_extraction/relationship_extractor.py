@@ -105,3 +105,17 @@ class RelationshipExtractor:
                         })
                         
         return relationships
+    
+    def _deduplicate_relationships(self, relationships: List[Dict]) -> List[Dict]:
+        """Remove duplicate relationships keeping the one with highest confidence."""
+        unique_rels = {}
+        
+        for rel in relationships:
+            # Create a unique key for each relationship
+            key = (rel["source"], rel["target"], rel["type"])
+            
+            # Keep relationship with highest confidence
+            if key not in unique_rels or rel["confidence"] > unique_rels[key]["confidence"]:
+                unique_rels[key] = rel
+                
+        return list(unique_rels.values())
