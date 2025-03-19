@@ -23,7 +23,7 @@ retriever = ContextAwareRetriever(graph_builder.build_graph([], []), processing_
 assembler = ContextAssembler(processing_config)
 
 # Process and index a document
-document = processor.process_document("path/to/document.pdf")
+document = processor.process_document("/dataset/472.pdf")
 chunks = chunker.chunk_document(document)
 entities = entity_extractor.extract_entities(chunks)
 relationships = relationship_extractor.extract_relationships(entities, chunks)
