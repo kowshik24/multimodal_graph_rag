@@ -56,3 +56,40 @@ class ContextAwareRetriever:
                 continue
                 
         return sorted(similarities, key=lambda x: x[1], reverse=True)[:k]
+
+    def _graph_expansion(self, initial_candidates):
+        """Expand initial candidates through graph connections."""
+        expanded = set(node for node, _ in initial_candidates)
+        
+        # For each initial candidate
+        for node, _ in initial_candidates:
+            # Add neighbors to expanded set
+            neighbors = set(self.knowledge_graph.neighbors(node))
+            expanded.update(neighbors)
+            
+        return list(expanded)
+    
+    def _hybrid_scoring(self, candidates, query_embedding):
+        """Score candidates using vector similarity and graph metrics."""
+        scored = []
+        
+        for node in candidates:
+            node_data = self.knowledge_graph.nodes[node]
+            if "embedding" not in node_data:
+                continue
+                
+            # Vector similarity score
+            similarity = 1 - cosine(query_embedding, node_data["embedding"])
+            
+            # Graph-based importance (using degree as a simple metric)
+            importance = len(list(self.knowledge_graph.neighbors(node))) / len(self.knowledge_graph)
+            
+            # Combine scores (weighted sum)
+            final_score = 0.7 * similarity + 0.3 * importance
+            scored.append((node, final_score))
+            
+        return scored
+        
+    def _select_top_results(self, scored_candidates, k):
+        """Select top k results from scored candidates."""
+        return sorted(scored_candidates, key=lambda x: x[1], reverse=True)[:k]
