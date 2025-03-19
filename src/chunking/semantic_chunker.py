@@ -5,9 +5,14 @@ import numpy as np
 class SemanticContextPreservingChunker:
     def __init__(self, config):
         self.config = config
-        self.tokenizer = AutoTokenizer.from_pretrained(config["models"]["text_embedding"]["name"])  
-        self.model = AutoModel.from_pretrained(config["models"]["text_embedding"]["name"])
+        # Handle both nested and flat config structures
+        model_name = (config.get("models", {}).get("text_embedding", {}).get("name") or 
+                     config.get("text_embedding_model", "sentence-transformers/all-mpnet-base-v2"))
+        
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
         self.nlp = spacy.load("en_core_web_sm")
+        self.max_chunk_size = config.get("chunking", {}).get("max_chunk_size", 512)
         
     def chunk_document(self, document):
         """Create semantic chunks while preserving context."""
@@ -37,7 +42,7 @@ class SemanticContextPreservingChunker:
         for sent in sentences:
             sent_tokens = len(self.tokenizer.encode(sent.text))
             
-            if current_tokens + sent_tokens > self.config["max_chunk_size"]:
+            if current_tokens + sent_tokens > self.max_chunk_size:
                 if current_chunk:
                     chunks.append(self._create_chunk_object(current_chunk))
                 current_chunk = [sent]

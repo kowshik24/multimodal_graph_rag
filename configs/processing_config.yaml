@@ -67,3 +67,15 @@ retrieval:
     max_tables: 2
     max_figures: 2
     max_entities: 5
+
+# Add or update the models section
+models:
+  text_embedding:
+    name: "sentence-transformers/all-mpnet-base-v2"
+  table_detection:
+    name: "microsoft/table-transformer-detection"
+    confidence_threshold: 0.7
+  table_structure:
+    name: "microsoft/table-transformer-structure-recognition"
+  image:
+    name: "openai/clip-vit-base-patch32"

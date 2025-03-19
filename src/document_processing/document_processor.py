@@ -5,14 +5,14 @@ from transformers import AutoModelForObjectDetection, AutoProcessor
 
 class MultimodalDocumentProcessor:
     def __init__(self, config):
-        self.config = config
+        self.config = config.get("models", {}) if isinstance(config, dict) else config
         
-        # Use consistent dictionary access
-        model_name = config["models"]["table_detection"]["name"]
-        self.table_detector = AutoModelForObjectDetection.from_pretrained(model_name)
-        self.table_processor = AutoProcessor.from_pretrained(model_name)
+        # Access model names safely with defaults
+        table_model = self.config.get("table_detection", {}).get("name", "microsoft/table-transformer-detection")
+        self.table_detector = AutoModelForObjectDetection.from_pretrained(table_model)
+        self.table_processor = AutoProcessor.from_pretrained(table_model)
         
-        structure_model = config["models"]["table_structure"]["name"]
+        structure_model = self.config.get("table_structure", {}).get("name", "microsoft/table-transformer-structure-recognition")
         self.table_structure_recognizer = AutoModelForObjectDetection.from_pretrained(structure_model)
 
     def process_document(self, file_path):
