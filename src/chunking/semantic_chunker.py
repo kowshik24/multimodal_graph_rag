@@ -11,7 +11,15 @@ class SemanticContextPreservingChunker:
         
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
-        self.nlp = spacy.load("en_core_web_sm")
+        
+        # Initialize spacy with download if needed
+        try:
+            self.nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            print("Downloading spacy model...")
+            spacy.cli.download("en_core_web_sm")
+            self.nlp = spacy.load("en_core_web_sm")
+            
         self.max_chunk_size = config.get("chunking", {}).get("max_chunk_size", 512)
         
     def chunk_document(self, document):

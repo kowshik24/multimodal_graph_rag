@@ -2,6 +2,7 @@ torch>=1.9.0
 transformers>=4.15.0
 sentence-transformers>=2.1.0
 spacy>=3.1.0
+spacy-model-en_core_web_sm>=3.1.0
 networkx>=2.6.3
 pymupdf>=1.19.0
 Pillow>=8.3.2
