@@ -6,15 +6,14 @@ from transformers import AutoModelForObjectDetection, AutoProcessor
 class MultimodalDocumentProcessor:
     def __init__(self, config):
         self.config = config
-        self.table_detector = AutoModelForObjectDetection.from_pretrained(
-            config["models"]["table_detection"]["name"]
-        )
-        self.table_processor = AutoProcessor.from_pretrained(
-            config["models"]["table_detection"]["name"]
-        )
-        self.table_structure_recognizer = AutoModelForObjectDetection.from_pretrained(
-            config["models"]["table_structure"]["name"]
-        )
+        
+        # Use consistent dictionary access
+        model_name = config["models"]["table_detection"]["name"]
+        self.table_detector = AutoModelForObjectDetection.from_pretrained(model_name)
+        self.table_processor = AutoProcessor.from_pretrained(model_name)
+        
+        structure_model = config["models"]["table_structure"]["name"]
+        self.table_structure_recognizer = AutoModelForObjectDetection.from_pretrained(structure_model)
 
     def process_document(self, file_path):
         """Process document and extract multimodal elements."""
