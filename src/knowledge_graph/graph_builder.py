@@ -78,12 +78,21 @@ class KnowledgeGraphBuilder:
     def _generate_embeddings(self, graph):
         """Generate embeddings for different node types."""
         for node, data in graph.nodes(data=True):
-            if data["type"] == "text":
-                embedding = self.text_embedder.encode(data["content"])
+            content = data.get("content", "")
+            
+            if not content:
+                continue
+                
+            if data["type"] in ["chunk", "entity", "text"]:
+                embedding = self.text_embedder.encode(content)
             elif data["type"] == "table":
-                embedding = self._generate_table_embedding(data["content"])
+                embedding = self._generate_table_embedding(content)
             elif data["type"] == "figure":
-                embedding = self._generate_image_embedding(data["content"])
+                embedding = self._generate_image_embedding(content)
+            else:
+                # Default to text embedding for unknown types
+                embedding = self.text_embedder.encode(str(content))
+                
             graph.nodes[node]["embedding"] = embedding
             
     def _generate_table_embedding(self, table_content):
