@@ -65,3 +65,42 @@ class MultimodalDocumentProcessor:
                     continue
         
         return blocks
+
+    def _extract_tables(self, page):
+        """Extract tables from a page using the table detection model."""
+        tables = []
+        try:
+            # Convert page to image
+            pix = page.get_pixmap()
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            
+            # Prepare image for model
+            inputs = self.table_processor(images=img, return_tensors="pt")
+            
+            # Get predictions
+            outputs = self.table_detector(**inputs)
+            
+            # Process results
+            target_sizes = [(img.size[1], img.size[0])]
+            results = self.table_processor.post_process_detection(
+                outputs=outputs,
+                target_sizes=target_sizes
+            )[0]
+            
+            # Filter predictions with confidence > 0.7
+            for score, label, box in zip(
+                results["scores"].tolist(),
+                results["labels"].tolist(),
+                results["boxes"].tolist()
+            ):
+                if score > 0.7:
+                    tables.append({
+                        "confidence": score,
+                        "bbox": box,
+                        "page_num": page.number
+                    })
+                    
+        except Exception as e:
+            logging.error(f"Error detecting tables on page {page.number}: {str(e)}")
+            
+        return tables
