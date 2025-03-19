@@ -106,3 +106,74 @@ class SemanticContextPreservingChunker:
             chunks.append(self._create_chunk_object(current_chunk))
             
         return chunks
+
+    def _create_chunk_object(self, sentences):
+        """Create a chunk object from a list of sentences."""
+        text = " ".join([sent.text for sent in sentences])
+        return {
+            "id": self._generate_chunk_id(),
+            "text": text,
+            "metadata": {
+                "start": sentences[0].start_char,
+                "end": sentences[-1].end_char
+            }
+        }
+
+    def _process_tables(self, tables, chunks):
+        """Process and add tables as chunks."""
+        for idx, table in enumerate(tables):
+            chunks.append({
+                "id": f"table_{idx}",
+                "text": self._table_to_text(table),
+                "type": "table",
+                "metadata": {
+                    "bbox": table.get("bbox", []),
+                    "headers": table.get("headers", []),
+                    "cells": table.get("cells", [])
+                }
+            })
+
+    def _process_figures(self, figures, chunks):
+        """Process and add figures as chunks."""
+        for idx, figure in enumerate(figures):
+            chunks.append({
+                "id": f"figure_{idx}",
+                "text": figure.get("caption", ""),
+                "type": "figure",
+                "metadata": {
+                    "bbox": figure.get("bbox", []),
+                    "image": figure.get("image", None)
+                }
+            })
+
+    def _link_chunks(self, chunks):
+        """Link chunks based on semantic relationships and proximity."""
+        # Add relationships between consecutive chunks
+        for i in range(len(chunks) - 1):
+            chunks[i]["next_chunk"] = chunks[i + 1]["id"]
+            chunks[i + 1]["prev_chunk"] = chunks[i]["id"]
+            
+        return chunks
+
+    def _generate_chunk_id(self):
+        """Generate a unique chunk ID."""
+        # Use a simple counter for now - could be made more sophisticated
+        if not hasattr(self, '_chunk_counter'):
+            self._chunk_counter = 0
+        self._chunk_counter += 1
+        return f"chunk_{self._chunk_counter}"
+
+    def _table_to_text(self, table):
+        """Convert table content to text representation."""
+        text_parts = []
+        
+        # Add headers if present
+        if "headers" in table:
+            text_parts.append(" | ".join(str(h) for h in table["headers"]))
+            
+        # Add cell contents
+        if "cells" in table:
+            for row in table["cells"]:
+                text_parts.append(" | ".join(str(cell) for cell in row))
+                
+        return "\n".join(text_parts) if text_parts else ""
