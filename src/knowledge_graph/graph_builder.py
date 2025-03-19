@@ -43,6 +43,38 @@ class KnowledgeGraphBuilder:
                 metadata=chunk["metadata"]
             )
             
+    def _add_entity_nodes(self, graph, entities):
+        """Add entity nodes to the graph."""
+        for entity in entities:
+            graph.add_node(
+                f"entity_{entity['id']}", 
+                type="entity",
+                content=entity["text"],
+                entity_type=entity["type"],
+                metadata=entity.get("metadata", {})
+            )
+            
+            # Link entity to its source chunk if available
+            if "chunk_id" in entity:
+                graph.add_edge(
+                    f"chunk_{entity['chunk_id']}", 
+                    f"entity_{entity['id']}", 
+                    type="contains"
+                )
+                
+    def _add_relationships(self, graph, relationships):
+        """Add relationships as edges between nodes."""
+        for rel in relationships:
+            source_type = "entity" if "entity" in rel["source"] else "chunk"
+            target_type = "entity" if "entity" in rel["target"] else "chunk"
+            
+            graph.add_edge(
+                f"{source_type}_{rel['source']}", 
+                f"{target_type}_{rel['target']}", 
+                type=rel["type"],
+                confidence=rel.get("confidence", 1.0)
+            )
+            
     def _generate_embeddings(self, graph):
         """Generate embeddings for different node types."""
         for node, data in graph.nodes(data=True):
@@ -53,3 +85,30 @@ class KnowledgeGraphBuilder:
             elif data["type"] == "figure":
                 embedding = self._generate_image_embedding(data["content"])
             graph.nodes[node]["embedding"] = embedding
+            
+    def _generate_table_embedding(self, table_content):
+        """Generate embedding for table content."""
+        # Convert table content to string representation
+        table_text = self._table_to_text(table_content)
+        return self.text_embedder.encode(table_text)
+        
+    def _generate_image_embedding(self, image):
+        """Generate embedding for image using CLIP."""
+        inputs = self.image_processor(images=image, return_tensors="pt")
+        outputs = self.image_model.get_image_features(**inputs)
+        return outputs.squeeze().detach().numpy()
+        
+    def _table_to_text(self, table_content):
+        """Convert table content to text representation."""
+        text_parts = []
+        
+        # Add headers if present
+        if "headers" in table_content:
+            text_parts.append(" | ".join(table_content["headers"]))
+            
+        # Add cell contents
+        if "cells" in table_content:
+            for row in table_content["cells"]:
+                text_parts.append(" | ".join(str(cell) for cell in row))
+                
+        return "\n".join(text_parts)
