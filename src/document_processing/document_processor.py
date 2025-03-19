@@ -2,6 +2,7 @@ import fitz
 from PIL import Image
 import io
 from transformers import AutoModelForObjectDetection, AutoProcessor
+import logging
 
 class MultimodalDocumentProcessor:
     def __init__(self, config):
@@ -38,11 +39,29 @@ class MultimodalDocumentProcessor:
     def _extract_text_blocks(self, page):
         """Extract text blocks with spatial information."""
         blocks = []
-        for block in page.get_text("dict")["blocks"]:
-            if block["type"] == 0:  # Text block
-                blocks.append({
-                    "text": block["text"],
-                    "bbox": block["bbox"],
-                    "page_num": page.number
-                })
+        page_dict = page.get_text("dict")
+        
+        for block in page_dict.get("blocks", []):
+            if block.get("type") == 0:  # Text block
+                try:
+                    text = ""
+                    # Extract text from spans if available
+                    if "lines" in block:
+                        for line in block["lines"]:
+                            for span in line.get("spans", []):
+                                text += span.get("text", "")
+                    # Fallback to direct text if available
+                    if not text and "text" in block:
+                        text = block["text"]
+                    
+                    if text:
+                        blocks.append({
+                            "text": text,
+                            "bbox": block.get("bbox", [0, 0, 0, 0]),
+                            "page_num": page.number
+                        })
+                except Exception as e:
+                    logging.warning(f"Error processing text block on page {page.number}: {str(e)}")
+                    continue
+        
         return blocks
