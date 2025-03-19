@@ -10,7 +10,13 @@ class EntityExtractor:
         self.tokenizer = AutoTokenizer.from_pretrained("jean-baptiste/roberta-large-ner-english")
         self.model = AutoModelForTokenClassification.from_pretrained("jean-baptiste/roberta-large-ner-english")
         self.nlp = spacy.load("en_core_web_sm")
-        
+        self._entity_counter = 0  # Add counter for generating unique IDs
+    
+    def _generate_entity_id(self) -> str:
+        """Generate a unique entity ID."""
+        self._entity_counter += 1
+        return f"entity_{self._entity_counter}"
+
     def extract_entities(self, chunks: List[Dict]) -> List[Dict]:
         """Extract entities from document chunks."""
         entities = []
@@ -25,9 +31,10 @@ class EntityExtractor:
             # Merge and deduplicate entities
             chunk_entities = self._merge_entities(named_entities, technical_entities)
             
-            # Add chunk reference
+            # Add chunk reference and entity ID
             for entity in chunk_entities:
                 entity["chunk_id"] = chunk["id"]
+                entity["id"] = self._generate_entity_id()  # Add unique ID
                 entities.append(entity)
                 
         return self._deduplicate_entities(entities)
