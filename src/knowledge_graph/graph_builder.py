@@ -4,10 +4,15 @@ from transformers import CLIPProcessor, CLIPModel
 
 class KnowledgeGraphBuilder:
     def __init__(self, config):
-        self.config = config
-        self.text_embedder = SentenceTransformer(config.text_embedding_model)
-        self.image_processor = CLIPProcessor.from_pretrained(config.image_model)
-        self.image_model = CLIPModel.from_pretrained(config.image_model)
+        self.config = config.get("models", {}) if isinstance(config, dict) else config
+        
+        # Access model names with defaults
+        text_model = self.config.get("text_embedding", {}).get("name", "sentence-transformers/all-mpnet-base-v2")
+        image_model = self.config.get("image", {}).get("name", "openai/clip-vit-base-patch32")
+        
+        self.text_embedder = SentenceTransformer(text_model)
+        self.image_processor = CLIPProcessor.from_pretrained(image_model)
+        self.image_model = CLIPModel.from_pretrained(image_model)
         
     def build_graph(self, chunks, entities, relationships):
         """Build knowledge graph from document elements."""
