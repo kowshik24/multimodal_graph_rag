@@ -14,9 +14,10 @@ class KnowledgeGraphBuilder:
         self.image_processor = CLIPProcessor.from_pretrained(image_model)
         self.image_model = CLIPModel.from_pretrained(image_model)
         
-    def build_graph(self, chunks, entities, relationships):
+    def build_graph(self, chunks, entities, relationships=None):
         """Build knowledge graph from document elements."""
         graph = nx.DiGraph()
+        relationships = relationships or []
         
         # Add nodes for chunks
         self._add_chunk_nodes(graph, chunks)
