@@ -7,13 +7,13 @@ class MultimodalDocumentProcessor:
     def __init__(self, config):
         self.config = config
         self.table_detector = AutoModelForObjectDetection.from_pretrained(
-            config.table_detection_model
+            config["models"]["table_detection"]["name"]
         )
         self.table_processor = AutoProcessor.from_pretrained(
-            config.table_detection_model
+            config["models"]["table_detection"]["name"]
         )
         self.table_structure_recognizer = AutoModelForObjectDetection.from_pretrained(
-            config.table_structure_model
+            config["models"]["table_structure"]["name"]
         )
 
     def process_document(self, file_path):
