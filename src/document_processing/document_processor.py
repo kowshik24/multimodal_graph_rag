@@ -82,22 +82,20 @@ class MultimodalDocumentProcessor:
             with torch.no_grad():
                 outputs = self.table_detector(**inputs)
             
-            # Process results - using correct post-processing method
-            predictions = outputs.logits.softmax(-1)
-            boxes = outputs.pred_boxes
+            # Use new post-processing method
+            results = self.table_processor.post_process_object_detection(
+                outputs,
+                threshold=0.7,
+                target_sizes=[(img.size[1], img.size[0])]
+            )[0]
             
-            # Get scores and convert boxes to image scale
-            scores = predictions.max(-1).values
-            scaled_boxes = self.table_processor.post_process(outputs, target_sizes=[(img.size[1], img.size[0])])[0]['boxes']
-            
-            # Filter predictions with confidence > 0.7
-            for score, box in zip(scores[0], scaled_boxes[0]):
-                if score > 0.7:
-                    tables.append({
-                        "confidence": score.item(),
-                        "bbox": box.tolist(),
-                        "page_num": page.number
-                    })
+            # Extract tables from results
+            for score, box in zip(results["scores"], results["boxes"]):
+                tables.append({
+                    "confidence": score.item(),
+                    "bbox": box.tolist(),
+                    "page_num": page.number
+                })
                     
         except Exception as e:
             logging.error(f"Error detecting tables on page {page.number}: {str(e)}")

@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModel
 import spacy
 import numpy as np
+import re
 
 class SemanticContextPreservingChunker:
     def __init__(self, config):
@@ -37,6 +38,48 @@ class SemanticContextPreservingChunker:
         self._process_figures(document["figures"], chunks)
         
         return self._link_chunks(chunks)
+
+    def _identify_sections(self, text_blocks):
+        """Identify logical sections from text blocks."""
+        sections = []
+        current_section = []
+        
+        for block in text_blocks:
+            text = block["text"]
+            # Check if block starts a new section (e.g., headers)
+            if self._is_section_header(text):
+                if current_section:
+                    sections.append({
+                        "text": "\n".join(b["text"] for b in current_section),
+                        "blocks": current_section
+                    })
+                current_section = []
+            current_section.append(block)
+            
+        # Add final section if exists
+        if current_section:
+            sections.append({
+                "text": "\n".join(b["text"] for b in current_section),
+                "blocks": current_section
+            })
+            
+        return sections
+        
+    def _is_section_header(self, text):
+        """Check if text appears to be a section header."""
+        # Basic heuristics for identifying headers
+        text = text.strip()
+        if not text:
+            return False
+            
+        # Check for common header patterns
+        header_patterns = [
+            r"^[0-9]+\.[0-9]*\s+[A-Z]",  # Numbered sections
+            r"^[A-Z][a-z]+(\s+[A-Z][a-z]+){0,4}$",  # Title Case
+            r"^[A-Z\s]{4,}$"  # ALL CAPS
+        ]
+        
+        return any(re.match(pattern, text) for pattern in header_patterns)
 
     def _create_semantic_chunks(self, section):
         """Create chunks based on semantic boundaries."""
