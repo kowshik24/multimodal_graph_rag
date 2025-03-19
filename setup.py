@@ -1,0 +1,35 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="multimodal-graph-rag",
+    version="0.1.0",
+    packages=find_packages(),
+    install_requires=[
+        "torch>=1.9.0",
+        "transformers>=4.15.0",
+        "sentence-transformers>=2.1.0",
+        "spacy>=3.1.0",
+        "networkx>=2.6.3",
+        "pymupdf>=1.19.0",
+        "pillow>=8.3.2",
+        "pandas>=1.3.3",
+        "numpy>=1.21.2",
+        "plotly>=5.3.1",
+        "matplotlib>=3.4.3",
+        "pyyaml>=5.4.1",
+    ],
+    python_requires=">=3.8",
+    author="kowshik24",
+    author_email="kowshik24@example.com",
+    description="A multimodal graph-based RAG system for complex document understanding",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/kowshik24/multimodal-graph-rag",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    ],
+)

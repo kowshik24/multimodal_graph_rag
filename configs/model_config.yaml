@@ -1,0 +1,30 @@
+# Model Configuration
+models:
+  table_detection:
+    name: "microsoft/table-transformer-detection"
+    confidence_threshold: 0.7
+    
+  table_structure:
+    name: "microsoft/table-transformer-structure-recognition"
+    
+  text_embedding:
+    name: "sentence-transformers/all-mpnet-base-v2"
+    
+  image:
+    name: "openai/clip-vit-base-patch32"
+
+# Processing Parameters
+chunking:
+  max_chunk_size: 512
+  overlap_size: 100
+  min_chunk_size: 100
+
+retrieval:
+  initial_top_k: 10
+  max_graph_hops: 2
+  similarity_threshold: 0.7
+  
+embedding:
+  text_dimension: 768
+  image_dimension: 512
+  table_dimension: 768

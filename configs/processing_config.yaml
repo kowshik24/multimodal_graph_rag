@@ -1,0 +1,69 @@
+# Document Processing Configuration
+document_processing:
+  max_page_size: 5000  # Maximum pixels in either dimension
+  image_quality: 300   # DPI for image extraction
+  
+  table_detection:
+    confidence_threshold: 0.7
+    min_table_size: 50  # Minimum pixels
+    max_aspect_ratio: 5.0
+    
+  figure_detection:
+    confidence_threshold: 0.6
+    caption_distance_threshold: 100  # pixels
+    
+# Chunking Configuration
+chunking:
+  max_chunk_size: 512
+  overlap_size: 100
+  min_chunk_size: 100
+  preserve_sections: true
+  
+# Entity Extraction
+entity_extraction:
+  min_entity_length: 2
+  max_entity_length: 50
+  min_confidence: 0.5
+  
+  patterns:
+    - type: "function"
+      regex: "(?i)\\b[a-z_][a-z0-9_]*\\([^)]*\\)"
+    - type: "class"
+      regex: "(?i)\\b(class|interface)\\s+[A-Z][a-zA-Z0-9_]*"
+    - type: "constant"
+      regex: "(?i)\\b[A-Z][A-Z0-9_]*\\b"
+    - type: "url"
+      regex: "(?i)\\b(https?://|www\\.)[^\\s]+"
+      
+# Relationship Extraction
+relationship_extraction:
+  max_distance: 5  # Maximum token distance for co-occurrence
+  min_confidence: 0.3
+  relationship_types:
+    - "contains"
+    - "references"
+    - "depends_on"
+    - "describes"
+    - "related_to"
+    
+# Knowledge Graph
+knowledge_graph:
+  embedding_dimension: 768
+  max_nodes: 10000
+  edge_weight_threshold: 0.2
+  
+# Retrieval
+retrieval:
+  initial_candidates: 20
+  max_graph_hops: 2
+  similarity_threshold: 0.7
+  max_context_tokens: 4000
+  
+  weights:
+    semantic_similarity: 0.7
+    graph_distance: 0.3
+    
+  context_assembly:
+    max_tables: 2
+    max_figures: 2
+    max_entities: 5
